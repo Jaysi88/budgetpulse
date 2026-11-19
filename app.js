@@ -190,8 +190,8 @@ const curIds = () => ui.acc === 'all' ? allIds() : [ui.acc];
 const accName = id => (state.accounts.find(a => a.id === id) || { name: '?' }).name;
 
 function toast(msg) { const t = $('#toast'); t.textContent = msg; t.classList.add('show'); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove('show'), 2200); }
-function sheet(html, cls = '') { const r = $('#sheetRoot'); r.innerHTML = `<div class="overlay" data-a="closebg"><div class="sheet ${cls}" role="dialog"><div class="grab"></div>${html}</div></div>`; document.body.style.overflow = 'hidden'; }
-function closeSheet() { $('#sheetRoot').innerHTML = ''; document.body.style.overflow = ''; }
+function sheet(html, cls = '') { const r = $('#sheetRoot'); r.innerHTML = `<div class="overlay" data-a="closebg"><div class="sheet ${cls}" role="dialog"><div class="grab"></div>${html}</div></div>`; lockBody(); }
+function closeSheet() { $('#sheetRoot').innerHTML = ''; unlockBody(); }
 function ask(msg, ok = 'Confirm', danger = true) {
   return new Promise(res => {
     const d = document.createElement('div'); d.className = 'overlay'; d.style.zIndex = 90;
@@ -203,8 +203,12 @@ function ask(msg, ok = 'Confirm', danger = true) {
 
 const closeAll = () => { ui.dayOpen = null; closeSheet(); };
 const back = () => ui.dayOpen ? openDay(ui.dayOpen) : closeSheet();
-const scroller = () => document.getElementById('scroll');
-const getScroll = () => scroller().scrollTop, setScroll = y => { scroller().scrollTop = y; };
+// native document scrolling; body is pinned (position:fixed) while a sheet is open and the scroll offset is restored on close
+let lockY = null;
+function lockBody() { if (lockY !== null) return; lockY = window.scrollY; const b = document.body.style; b.position = 'fixed'; b.top = (-lockY) + 'px'; b.left = '0'; b.right = '0'; b.width = '100%'; }
+function unlockBody() { if (lockY === null) return; const y = lockY; lockY = null; const b = document.body.style; b.position = b.top = b.left = b.right = b.width = ''; window.scrollTo(0, y); }
+const getScroll = () => lockY !== null ? lockY : window.scrollY;
+const setScroll = y => { if (lockY !== null) { lockY = y; document.body.style.top = (-y) + 'px'; } else window.scrollTo(0, y); };
 function changed() { save(); const y = getScroll(); render(); setScroll(y); if (ui.dayOpen) openDay(ui.dayOpen); else closeSheet(); }
 const iouDueOn = n => state.ious.filter(i => i.due === fd(n) && remaining(i) > 0);
 const amtHtml = (t, sign) => { const c = txCur(t); return `<div class="amt ${t.type === 'income' ? 'pos' : 'neg'}">${sign || (t.type === 'income' ? '+' : '−')}${fmt(t.amount, undefined, c)}${c !== disp() ? `<div class="s" style="font-weight:400">≈ ${fmt(conv(t.amount, c))}</div>` : ''}</div>`; };
@@ -781,7 +785,7 @@ addEventListener('keydown', e => { if (e.key === 'Escape') { const o = document.
 function render() {
   $('#view').innerHTML = ({ home: viewHome, people: viewPeople, crypto: viewCrypto, coach: viewCoach, settings: viewSettings })[ui.tab]();
   document.querySelectorAll('#nav button[data-tab]').forEach(b => b.classList.toggle('on', b.dataset.tab === ui.tab));
-  $('#fab').classList.toggle('show', ui.tab === 'home' || ui.tab === 'people');
+  { const on = ui.tab === 'home' || ui.tab === 'people'; $('#fab').classList.toggle('show', on); document.body.classList.toggle('hasfab', on); }
   $('#subtitle').textContent = { home: 'Personal budget calendar', people: 'Family & people', crypto: 'Crypto portfolio', coach: 'Coach & reports', settings: 'Settings' }[ui.tab];
   if (ui.tab === 'coach' && ui.coach === 'ai') renderChat();
 }
