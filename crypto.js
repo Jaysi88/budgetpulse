@@ -39,7 +39,7 @@ async function refreshPrices(showToast) {
   } catch (e) { priceStatus = { state: 'error', msg: e.message === 'rate' ? 'CoinGecko is rate-limiting, try again in a minute' : 'Could not reach CoinGecko' }; if (showToast) toast(priceStatus.msg); }
   clearTimeout(to); refreshing = false; cryptoRerender(); if (ui.tab === 'home') render();
 }
-function cryptoRerender() { if (ui.tab === 'crypto') { const y = scrollY; render(); scrollTo(0, y); } }
+function cryptoRerender() { if (ui.tab === 'crypto') { const y = getScroll(); render(); setScroll(y); } }
 function autoRefresh() { if (cx().coins.length && navigator.onLine && Date.now() - pcache().t > PRICE_TTL) refreshPrices(false); }
 
 /* ---------- portfolio maths (average-cost method, USD) ---------- */

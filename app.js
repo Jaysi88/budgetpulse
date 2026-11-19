@@ -203,7 +203,9 @@ function ask(msg, ok = 'Confirm', danger = true) {
 
 const closeAll = () => { ui.dayOpen = null; closeSheet(); };
 const back = () => ui.dayOpen ? openDay(ui.dayOpen) : closeSheet();
-function changed() { save(); const y = scrollY; render(); scrollTo(0, y); if (ui.dayOpen) openDay(ui.dayOpen); else closeSheet(); }
+const scroller = () => document.getElementById('scroll');
+const getScroll = () => scroller().scrollTop, setScroll = y => { scroller().scrollTop = y; };
+function changed() { save(); const y = getScroll(); render(); setScroll(y); if (ui.dayOpen) openDay(ui.dayOpen); else closeSheet(); }
 const iouDueOn = n => state.ious.filter(i => i.due === fd(n) && remaining(i) > 0);
 const amtHtml = (t, sign) => { const c = txCur(t); return `<div class="amt ${t.type === 'income' ? 'pos' : 'neg'}">${sign || (t.type === 'income' ? '+' : '−')}${fmt(t.amount, undefined, c)}${c !== disp() ? `<div class="s" style="font-weight:400">≈ ${fmt(conv(t.amount, c))}</div>` : ''}</div>`; };
 const titleOf = t => t.remit ? (t.note || `Family → ${t.remit.to}`) : (t.note || CATS[t.cat].l);
@@ -655,7 +657,7 @@ function addTxFromPay(i, amount, accId, date) {
 /* ---------- actions ---------- */
 const QP = { save: 'How can I save more each month?', cut: 'Where can I cut spending?', car: 'Give me a plan to reach my car fund faster.', family: 'How should I budget for supporting my family?', debt: 'What is the best way to pay off what I owe?' };
 const A = {
-  tab: d => { ui.tab = d.tab; ui.dayOpen = null; closeSheet(); render(); scrollTo(0, 0); if (d.tab === 'crypto') autoRefresh(); },
+  tab: d => { ui.tab = d.tab; ui.dayOpen = null; closeSheet(); render(); setScroll(0); if (d.tab === 'crypto') autoRefresh(); },
   acc: d => { ui.acc = d.id; render(); },
   mprev: () => { if (--ui.m < 0) { ui.m = 11; ui.y--; } render(); }, mnext: () => { if (++ui.m > 11) { ui.m = 0; ui.y++; } render(); },
   rprev: () => { if (--ui.rm < 0) { ui.rm = 11; ui.ry--; } render(); }, rnext: () => { if (++ui.rm > 11) { ui.rm = 0; ui.ry++; } render(); },
@@ -678,7 +680,7 @@ const A = {
     { const k = cx(); k.trades = k.trades.filter(t => !t.demo); k.dca = k.dca.filter(p => !p.demo); const gone = k.coins.filter(c => c.demo && !k.trades.some(t => t.sym === c.sym)).map(c => c.sym); k.coins = k.coins.filter(c => !gone.includes(c.sym)); gone.forEach(s => { delete k.manual[s]; delete k.target[s]; }); k.snaps = k.snaps.filter(x => !x.demo); }
     state.meta.demo = false; if (state.settings.threshold === 1200) { state.settings.threshold = 300; state.settings.thrCur = 'USD'; } ui.acc = 'all'; ui.person = 'all'; toast('Demo data cleared'); changed();
   },
-  ctab: d => { ui.coach = d.k; render(); }, gosettings: () => { ui.tab = 'settings'; render(); scrollTo(0, 0); },
+  ctab: d => { ui.coach = d.k; render(); }, gosettings: () => { ui.tab = 'settings'; render(); setScroll(0); },
   topic: d => sendQuestion(QP[d.k], d.k),
   preview: () => { let u = ''; try { u = endpoint(); } catch (e) { u = '(not set) ' + e.message; } sheet(`<h2>What the AI receives</h2><p class="small muted">Sent to: <b>${esc(u)}</b><br>Model: <b>${esc(ai.model)}</b><br>Plus your question and the last few chat messages.</p><pre class="preview">${esc(JSON.stringify(buildSummary(), null, 1))}</pre><button class="btn block" data-a="closeall">Close</button>`); },
   clearchat: () => { chat = []; saveChat(); renderChat(); },
