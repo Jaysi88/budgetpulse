@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#1b0d45">
+<meta name="description" content="Offline-first budget calendar with projected daily balances.">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<title>BudgetPulse+</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div>
+<div id="app" class="app">
+  <header class="top">
+    <div class="brand"><span class="logo">◔</span><div><h1>BudgetPulse<span class="plus">+</span></h1><small id="subtitle">Personal budget calendar</small></div></div>
+    <div id="netbadge" class="badge" hidden>Offline</div>
+  </header>
+  <main id="view"></main>
+</div>
+<button id="fab" class="fab" data-a="fabadd" aria-label="Add transaction">+</button>
+<nav class="nav" id="nav">
+  <button data-a="tab" data-tab="home"><i>🏠</i><span>Home</span></button>
+  <button data-a="tab" data-tab="people"><i>👨‍👩‍👦</i><span>People</span></button>
+  <button data-a="tab" data-tab="crypto"><i>₿</i><span>Crypto</span></button>
+  <button data-a="tab" data-tab="coach"><i>🧠</i><span>Coach</span></button>
+    <button data-a="tab" data-tab="settings"><i>⚙️</i><span>Settings</span></button>
+</nav>
+<div id="sheetRoot"></div>
+<div id="toast" class="toast" role="status"></div>
+<script src="crypto.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
